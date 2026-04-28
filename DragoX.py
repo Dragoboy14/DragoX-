@@ -26,7 +26,7 @@ model = genai.GenerativeModel(
     system_instruction=system_prompt,
     tools=[
         {
-            "google_search_retrieval": {} 
+            "google_search": {} 
         }
     ]
 )
