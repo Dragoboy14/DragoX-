@@ -21,7 +21,12 @@ system_prompt = (
 )
 
 # FIXED MODEL NAME HERE
-model = genai.GenerativeModel('models/gemini-2.5-flash-lite', system_instruction=system_prompt)
+# DragoX ko Internet ki shakti dene ke liye tools add karo
+model = genai.GenerativeModel(
+    model_name='models/gemini-2.5-flash-lite',
+    system_instruction=system_prompt,
+    tools=[{'google_search_queries': {}}]  # Yeh hai asli jaadu!
+)
 
 # Chat History Setup
 if "messages" not in st.session_state:
