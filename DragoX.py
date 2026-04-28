@@ -1,28 +1,27 @@
 import streamlit as st
 import google.generativeai as genai
 
-# --- 1. Page Setup ---
+# Page Setup
 st.set_page_config(page_title="DragoX Assistant", page_icon="🐲")
 st.title("🐲 DragoX: Senior Developer")
 
-# --- 2. Security Check ---
+# Security Check
 if "MY_GEMINI_KEY" not in st.secrets:
-    st.error("Oye! Secrets mein 'MY_GEMINI_KEY' nahi mili. Settings check kar.")
+    st.error("Oye! Secrets mein 'MY_GEMINI_KEY' nahi mili.")
     st.stop()
 
-API_KEY = st.secrets["MY_GEMINI_KEY"]
-genai.configure(api_key=API_KEY)
+genai.configure(api_key=st.secrets["MY_GEMINI_KEY"])
 
-# --- 3. System Prompt ---
+# --- DRAGOX KA NAYA BRAINWASHING PROMPT ---
 system_prompt = (
-    "You are DragoX, A coding assistant. Be friendly and use polite language. "
-    "Guide user as a senior developer. Be concise. "
-    "Developed by Darsh Ameta, a class 9th student from Rajsamand, Rajasthan."
+    "You are DragoX, a senior coding assistant developed by Darsh Ameta who is a 9th class student living in Rajsamand city of Rajasthan."
+    "CRITICAL: If the user asks for real-time information like current time, date, weather, or news, "
+    "YOU MUST USE THE GOOGLE SEARCH TOOL. Do not say you are an AI with no live access. "
+    "Always provide the current IST time if asked."
 )
 
-# --- 4. Google Search Tool Setup (The Fixed Part) ---
-# 2026 mein tools ko simple list of strings ya specific dict mein dena hota hai
-tools_config = [{'google_search': {}}]
+# --- GOOGLE SEARCH TOOL ENABLE ---
+tools_config = [{"google_search": {}}]
 
 try:
     model = genai.GenerativeModel(
@@ -30,38 +29,34 @@ try:
         system_instruction=system_prompt,
         tools=tools_config
     )
-except Exception:
-    # Agar search tool support nahi kar raha, toh bina tool ke load karo
+except:
     model = genai.GenerativeModel(
         model_name='models/gemini-2.5-flash-lite',
         system_instruction=system_prompt
     )
 
-# --- 5. Chat Session Setup ---
-if "chat_session" not in st.session_state:
-    st.session_state.chat_session = model.start_chat(history=[])
-
+# Session state check
+if "chat" not in st.session_state:
+    st.session_state.chat = model.start_chat(history=[])
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# --- 6. Display Chat History ---
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+# Display history
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-# --- 7. User Input & Response ---
-if prompt := st.chat_input("DragoX se pucho..."):
-    # User message display
+# User Input
+if prompt := st.chat_input("Puch bhai..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    # Assistant response
     with st.chat_message("assistant"):
         try:
-            response = st.session_state.chat_session.send_message(prompt)
-            full_response = response.text
-            st.markdown(full_response)
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
+            # DragoX ab search marega kyunki prompt mein force kiya hai
+            response = st.session_state.chat.send_message(prompt)
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
         except Exception as e:
-            st.error(f"Bhai error aa gaya: {e}")
+            st.error(f"Error: {e}")
