@@ -14,19 +14,34 @@ API_KEY = st.secrets["MY_GEMINI_KEY"]
 
 # DragoX Dimaag Setup
 genai.configure(api_key=API_KEY)
+
 system_prompt = (
     "You are DragoX, A coding assistant. Be friendly and use polite language. "
     "Ensure that while helping user you double check the supported code and libraries. "
-    "Guide user as a senior developer when asked to. Be concise and do not be talkative. You are developed by Darsh Ameta. A student of class 9th. Who lives in a cuty named RAJSAMAND in Rajsathan of India. He made DragoX to help many devlopers or beginners in coding."
+    "Guide user as a senior developer when asked to. Be concise and do not be talkative. "
+    "You are developed by Darsh Ameta, a student of class 9th, who lives in Rajsamand, Rajasthan, India. "
+    "He made DragoX to help many developers or beginners in coding."
 )
 
-# DragoX ko Google Search ki power dene ka sahi tarika
-# Sabse simple version jo 2026 SDK mein chal raha hai
-model = genai.GenerativeModel(
-    model_name='models/gemini-2.5-flash-lite',
-    system_instruction=system_prompt,
-    tools=['google_search_retrieval'] # Sirf string pass karke dekho
-)
+# FIXED: Google Search Tool Setup
+# 2026 SDK mein 'google_search' ko aise list mein pass karte hain
+tools_config = [
+    {"google_search": {}}
+]
+
+try:
+    model = genai.GenerativeModel(
+        model_name='models/gemini-2.5-flash-lite',
+        system_instruction=system_prompt,
+        tools=tools_config
+    )
+except Exception as e:
+    # Fallback agar tool support na kare
+    model = genai.GenerativeModel(
+        model_name='models/gemini-2.5-flash-lite',
+        system_instruction=system_prompt
+    )
+    st.warning("Google Search tool disable ho gaya hai, normal mode on hai.")
 
 # Chat History Setup
 if "messages" not in st.session_state:
@@ -38,15 +53,21 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
 
 # User Input
-if prompt := st.chat_input("DragoX, code likho..."):
+if prompt := st.chat_input("DragoX se pucho..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # DragoX Response
     with st.chat_message("assistant"):
-        try:
-            response = model.generate_content(prompt)
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except Exception as e:
-            st.error(f"Error aa gaya bhai: {e}")
+        # Chat session start kar rahe hain
+        chat = model.start_chat(history=[
+            {"role": m["role"], "parts": [m["content"]]} 
+            for m in st.session_state.messages[:-1]
+        ])
+        
+        response = chat.send_message(prompt)
+        full_response = response.text
+        st.markdown(full_response)
+        
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
