@@ -21,16 +21,12 @@ system_prompt = (
 )
 
 # DragoX ko Google Search ki power dene ka sahi tarika
+# Sabse simple version jo 2026 SDK mein chal raha hai
 model = genai.GenerativeModel(
     model_name='models/gemini-2.5-flash-lite',
     system_instruction=system_prompt,
-    tools=[
-        {
-            "google_search": {} 
-        }
-    ]
+    tools=['google_search_retrieval'] # Sirf string pass karke dekho
 )
-
 
 # Chat History Setup
 if "messages" not in st.session_state:
