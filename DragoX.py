@@ -20,8 +20,9 @@ system_prompt = (
     "Guide user as a senior developer when asked to. Be concise and do not be talkative."
 )
 
-# FIXED MODEL NAME HERE
-model = genai.GenerativeModel('models/gemini-1.5-flash', system_instruction=system_prompt)
+# FIXED MODEL NAME HERE 
+model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
+
 
 # Chat History Setup
 if "messages" not in st.session_state:
