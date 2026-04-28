@@ -1,48 +1,34 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Page Setup
-st.set_page_config(page_title="DragoX Assistant", page_icon="🐲")
-st.title("🐲 DragoX: Senior Developer")
+st.set_page_config(page_title="Model Scanner", page_icon="🔍")
+st.title("🔍 DragoX: Model Discovery")
 
-# Security Check
+# API Key check
 if "MY_GEMINI_KEY" not in st.secrets:
-    st.error("Oye! Secrets mein 'MY_GEMINI_KEY' nahi mili. Settings check kar.")
+    st.error("Pehle Streamlit Secrets mein 'MY_GEMINI_KEY' daal bhai!")
     st.stop()
 
-API_KEY = st.secrets["MY_GEMINI_KEY"]
+genai.configure(api_key=st.secrets["MY_GEMINI_KEY"])
 
-# DragoX Dimaag Setup
-genai.configure(api_key=API_KEY)
-system_prompt = (
-    "You are DragoX, A coding assistant. Be friendly and use polite language. "
-    "Ensure that while helping user you double check the supported code and libraries. "
-    "Guide user as a senior developer when asked to. Be concise and do not be talkative."
-)
+st.info("Tere account ke liye available models dhoond raha hoon...")
 
-# FIXED MODEL NAME HERE 
-model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
+try:
+    # Google se list maang rahe hain
+    available_models = genai.list_models()
+    
+    found = False
+    for m in available_models:
+        # Hum wahi models dikhayenge jo 'generateContent' support karte hain
+        if 'generateContent' in m.supported_generation_methods:
+            st.success(f"Mil gaya! Model Name: `{m.name}`")
+            st.write(f"Description: {m.description}")
+            st.divider()
+            found = True
+            
+    if not found:
+        st.warning("Koi bhi generative model nahi mila. API key check kar.")
 
-
-# Chat History Setup
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Display Messages
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# User Input
-if prompt := st.chat_input("DragoX, code likho..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-        try:
-            response = model.generate_content(prompt)
-            st.markdown(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
-        except Exception as e:
-            st.error(f"Error aa gaya bhai: {e}")
+except Exception as e:
+    st.error(f"Error aa gaya bhai: {e}")
+    st.write("Ho sakta hai API Key invalid ho ya permissions na hon.")
