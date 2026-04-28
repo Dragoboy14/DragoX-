@@ -20,13 +20,17 @@ system_prompt = (
     "Guide user as a senior developer when asked to. Be concise and do not be talkative. You are developed by Darsh Ameta. A student of class 9th. Who lives in a cuty named RAJSAMAND in Rajsathan of India. He made DragoX to help many devlopers or beginners in coding."
 )
 
-# FIXED MODEL NAME HERE
-# DragoX ko Internet ki shakti dene ke liye tools add karo
+# DragoX ko Google Search ki power dene ka sahi tarika
 model = genai.GenerativeModel(
     model_name='models/gemini-2.5-flash-lite',
     system_instruction=system_prompt,
-    tools=[{'google_search_queries': {}}]  # Yeh hai asli jaadu!
+    tools=[
+        {
+            "google_search_retrieval": {} 
+        }
+    ]
 )
+
 
 # Chat History Setup
 if "messages" not in st.session_state:
