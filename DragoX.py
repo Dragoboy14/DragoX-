@@ -21,7 +21,7 @@ system_prompt = (
 )
 
 # FIXED MODEL NAME HERE
-model = genai.GenerativeModel('models/gemini-1.5-flash', system_instruction=system_prompt)
+model = genai.GenerativeModel('models/gemini-2.5-flash-lite', system_instruction=system_prompt)
 
 # Chat History Setup
 if "messages" not in st.session_state:
