@@ -5,7 +5,11 @@ import google.generativeai as genai
 st.set_page_config(page_title="DragoX Assistant", page_icon="🐲")
 st.title("🐲 DragoX: Senior Developer")
 
-# Yahan apni secret API key dalna
+# Security Check
+if "MY_GEMINI_KEY" not in st.secrets:
+    st.error("Oye! Secrets mein 'MY_GEMINI_KEY' nahi mili. Settings check kar.")
+    st.stop()
+
 API_KEY = st.secrets["MY_GEMINI_KEY"]
 
 # DragoX Dimaag Setup
@@ -15,7 +19,9 @@ system_prompt = (
     "Ensure that while helping user you double check the supported code and libraries. "
     "Guide user as a senior developer when asked to. Be concise and do not be talkative."
 )
-model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
+
+# FIXED MODEL NAME HERE
+model = genai.GenerativeModel('models/gemini-1.5-flash', system_instruction=system_prompt)
 
 # Chat History Setup
 if "messages" not in st.session_state:
@@ -33,6 +39,9 @@ if prompt := st.chat_input("DragoX, code likho..."):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        response = model.generate_content(prompt)
-        st.markdown(response.text)
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
+        try:
+            response = model.generate_content(prompt)
+            st.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+        except Exception as e:
+            st.error(f"Error aa gaya bhai: {e}")
